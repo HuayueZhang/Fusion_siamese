@@ -6,19 +6,19 @@ import os
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
-def main():
+def main1():
     # Create a session
     config = tf.ConfigProto()
     # config.gpu_options.allow_growth = True
-    config.gpu_options.per_process_gpu_memory_fraction = 0.7
+    config.gpu_options.per_process_gpu_memory_fraction = 0.1
     config.log_device_placement = False
     config.allow_soft_placement = True
 
     with tf.Session(config=config) as sess:
         # load the meta graph and weights
-        saver = tf.train.import_meta_graph('/home/zhy/fuse_cnn/model_with_eval/model.ckpt-20.meta')
+        saver = tf.train.import_meta_graph('/home/zhy/fuse_cnn/model_with_eval/model.ckpt-2.meta')
         # name  = tf.train.latest_checkpoint('/home/zhy/fuse_cnn/model/')
-        saver.restore(sess, '/home/zhy/fuse_cnn/model_with_eval/model.ckpt-20')
+        saver.restore(sess, '/home/zhy/fuse_cnn/model_with_eval/model.ckpt-2')
 
         # get weights
         graph = tf.get_default_graph()
@@ -52,5 +52,5 @@ def main():
             'biases_output ': biases_output,
         }, format='5')
 
-if __name__ == "__main__":
-    main()
+# if __name__ == "__main__":
+#     main()
