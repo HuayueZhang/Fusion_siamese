@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="fe6c704c-8b33-4535-8264-c49a75cf76c6" name="fusion_siamese" url="http://101.6.66.95">
+        <fileTransfer host="101.6.66.95" port="22" rootFolder="/home/zhy/fuse_cnn" accessType="SFTP">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" />
+          </advancedOptions>
+          <option name="port" value="22" />
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>

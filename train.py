@@ -20,8 +20,10 @@ tf.app.flags.DEFINE_integer('gpu_idx', 0, 'Gpu index')
 tf.app.flags.DEFINE_float('weight_decay', 0.0005, 'Weight decay')
 tf.app.flags.DEFINE_float('learning_rate', 1e-4, 'Learning rate')
 tf.app.flags.DEFINE_float('momentum', 0.99, 'Momentum')
+tf.app.flags.DEFINE_string('checkpoint_dir', './model_with_eval', 'Checkpoint directory')
 FLAGS = tf.app.flags.FLAGS
 
+ckpt_dir = FLAGS.checkpoint_dir
 DATA_FORMAT = 'NHWC'
 DATA_DIRECTORY = '/home/zhy/fuse_cnn/ILSVRC2012/train/blurd_x5/'
 DATA_PATHS = utils.list_images(DATA_DIRECTORY)
@@ -86,10 +88,12 @@ def main(_):
     eval_writer = tf.summary.FileWriter('log/eval')
 
     # Init variables
-    init = tf.global_variables_initializer()
-
-    # Run the init operation
-    sess.run(init, {is_training: True})
+    if not os.listdir(ckpt_dir):  # 文件夹为空
+        init = tf.global_variables_initializer()
+        # Run the init operation
+        sess.run(init, {is_training: True})
+    else:
+        saver.restore(sess, tf.train.latest_checkpoint(ckpt_dir))
 
     # This is just a dictionary including important parameters transferred to another function
     # These parameters are actually all parts, namely operations, of the graph, without being
@@ -112,7 +116,7 @@ def main(_):
             eval_loss = eval_one_step(b, sess, ops, eval_writer, is_training = False)
             print "global step %d: train loss = %f; eval loss = %f" % (step, train_loss, eval_loss)
 
-        saver.save(sess, "model_with_eval/model.ckpt", global_steps)
+            saver.save(sess, "model_with_eval/model.ckpt", global_steps)
 
 
 def train_one_step(b, sess, ops, writer, is_training):
