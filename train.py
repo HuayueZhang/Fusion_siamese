@@ -29,9 +29,9 @@ DATA_DIRECTORY = '/home/zhy/fuse_cnn/ILSVRC2012/train/blurd_x5/'
 DATA_PATHS = utils.list_images(DATA_DIRECTORY)
 n_batches = int(len(DATA_PATHS) // FLAGS.batch_size)
 
-EVAL_DATA_DIRECTORY = '/home/zhy/fuse_cnn/ILSVRC2012/train/blurd_x5/'
-EVAL_DATA_PATHS = utils.list_images(DATA_DIRECTORY)
-eval_n_batches = int(len(DATA_PATHS) // FLAGS.batch_size)
+EVAL_DATA_DIRECTORY = '/home/zhy/fuse_cnn/ILSVRC2012/eval/blurd_x5/'
+EVAL_DATA_PATHS = utils.list_images(EVAL_DATA_DIRECTORY)
+eval_n_batches = int(len(EVAL_DATA_PATHS) // FLAGS.batch_size)
 
 gpus = '/gpu:%d'%(FLAGS.gpu_idx)
 cpus = '/cpu:0'
@@ -138,21 +138,25 @@ def train_one_step(b, sess, ops, writer, is_training):
     # 如果使用writer.add_summary(summary，global_step)时没有传global_step参数,会使scarlar_summary变成一条直线
     return global_steps, loss_rslt
 
-def eval_one_step(b, sess, ops, writer, is_training):
-    # An iteration/step
-    # Get eval data
-    batch_paths = EVAL_DATA_PATHS[b * FLAGS.batch_size: (b * FLAGS.batch_size + FLAGS.batch_size)]
-    b_left_in, b_righ_in, b_label = dataset.batch(batch_paths)
-    feed_dict = {ops['is_training_pl']: is_training,
-                 ops['left_in_pl']: b_left_in,
-                 ops['righ_in_pl']: b_righ_in,
-                 ops['label_pl']: b_label}
+def eval_one_step(sess, ops, writer, is_training):
+    loss = 0
+    for eb in range(eval_n_batches):
+        # An iteration/step
+        # Get eval data
+        batch_paths = EVAL_DATA_PATHS[eb * FLAGS.batch_size: (eb * FLAGS.batch_size + FLAGS.batch_size)]
+        b_left_in, b_righ_in, b_label = dataset.batch(batch_paths)
+        feed_dict = {ops['is_training_pl']: is_training,
+                     ops['left_in_pl']: b_left_in,
+                     ops['righ_in_pl']: b_righ_in,
+                     ops['label_pl']: b_label}
 
-    # Pass through the network without running the training step
-    summary_str, loss_rslt, global_steps = sess.run([ops['merged'], ops['loss'], ops['global_steps']],
-                                         feed_dict=feed_dict)
-    writer.add_summary(summary_str, global_steps)
-    return loss_rslt
+        # Pass through the network without running the training step
+        summary_str, loss_rslt, global_steps = sess.run([ops['merged'], ops['loss'], ops['global_steps']],
+                                             feed_dict=feed_dict)
+        writer.add_summary(summary_str, global_steps)
+        loss += loss_rslt
+    loss = loss / eval_n_batches
+    return loss
 
 
 if __name__ == '__main__':
